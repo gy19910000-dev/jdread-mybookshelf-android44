@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.script.SimpleBindings;
+
 
 import static android.text.TextUtils.isEmpty;
 import static com.kunfei.bookshelf.constant.AppConstant.EXP_PATTERN;
@@ -39,6 +39,8 @@ public class AnalyzeRule implements JsExtensions {
     private static final Pattern putPattern = Pattern.compile("@put:(\\{[^}]+?\\})", Pattern.CASE_INSENSITIVE);
     private static final Pattern getPattern = Pattern.compile("@get:\\{([^}]+?)\\}", Pattern.CASE_INSENSITIVE);
 
+    private com.kunfei.bookshelf.help.Source3Store.Source source;
+    private final java.util.Map<String,String> variables = new java.util.HashMap<>();
     private BaseBookBean book;
     private Object object;
     private Boolean isJSON = false;
@@ -55,6 +57,10 @@ public class AnalyzeRule implements JsExtensions {
     public AnalyzeRule(BaseBookBean bookBean) {
         book = bookBean;
     }
+
+    public AnalyzeRule setSource(com.kunfei.bookshelf.bean.BookSourceBean bean) { source = com.kunfei.bookshelf.help.Source3Store.find(bean.getBookSourceUrl()); return this; }
+    public String jsBaseUrl() { return baseUrl; }
+    public com.kunfei.bookshelf.help.Source3Store.Source jsSource() { return source; }
 
     public void setBook(BaseBookBean book) {
         this.book = book;
@@ -388,13 +394,15 @@ public class AnalyzeRule implements JsExtensions {
             StringBuffer sb = new StringBuffer(ruleStr.length());
             Matcher expMatcher = EXP_PATTERN.matcher(ruleStr);
             while (expMatcher.find()) {
-                jsEval = evalJS(expMatcher.group(1), object);
+                String expression = expMatcher.group(1).trim();
+                jsEval = expression.startsWith("$.") || expression.startsWith("$[") || expression.startsWith("@") || expression.startsWith("//")
+                        ? getString(expression) : evalJS(expression, object);
                 if (jsEval instanceof String) {
-                    expMatcher.appendReplacement(sb, (String) jsEval);
+                    expMatcher.appendReplacement(sb, Matcher.quoteReplacement((String) jsEval));
                 } else if (jsEval instanceof Double && ((Double) jsEval) % 1.0 == 0) {
                     expMatcher.appendReplacement(sb, String.format("%.0f", (Double) jsEval));
                 } else {
-                    expMatcher.appendReplacement(sb, String.valueOf(jsEval));
+                    expMatcher.appendReplacement(sb, Matcher.quoteReplacement(String.valueOf(jsEval)));
                 }
             }
             expMatcher.appendTail(sb);
@@ -509,16 +517,14 @@ public class AnalyzeRule implements JsExtensions {
     }
 
     public String put(String key, String value) {
-        if (book != null) {
-            book.putVariable(key, value);
-        }
+        if (book != null) book.putVariable(key, value);
+        else if (source != null) source.put(key, value);
+        else variables.put(key, value);
         return value;
     }
 
     public String get(String key) {
-        if (book == null) {
-            return null;
-        }
+        if (book == null) return source == null ? variables.get(key) : source.get(key);
         if (book.getVariableMap() == null) {
             return null;
         }
@@ -529,10 +535,7 @@ public class AnalyzeRule implements JsExtensions {
      * 执行JS
      */
     private Object evalJS(String jsStr, Object result) throws Exception {
-        SimpleBindings bindings = new SimpleBindings();
-        bindings.put("java", this);
-        bindings.put("result", result);
-        bindings.put("baseUrl", baseUrl);
+        java.util.Map<String,Object> bindings = com.kunfei.bookshelf.help.JsBindings.create(this, result, baseUrl, book, source);
         return SCRIPT_ENGINE.eval(jsStr, bindings);
     }
 

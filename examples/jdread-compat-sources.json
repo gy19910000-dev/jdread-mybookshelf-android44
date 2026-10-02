@@ -1,0 +1,60 @@
+[
+  {
+    "bookSourceComment": "",
+    "bookSourceName": "速读谷（JDRead兼容）",
+    "bookSourceType": 0,
+    "bookSourceUrl": "https://www.sudugu.cc",
+    "customOrder": 9,
+    "enabled": true,
+    "enabledCookieJar": false,
+    "enabledExplore": true,
+    "exploreUrl": "最近更新::/top/lastupdate/{{page}}.html\n总排行榜::/top.html\n完本排行::/quanben/{{page}}.html\n玄幻小说::/fenlei/1/{{page}}/\n仙侠小说::/fenlei/2/{{page}}/\n都市小说::/fenlei/3/{{page}}/\n历史小说::/fenlei/4/{{page}}/\n军事小说::/fenlei/5/{{page}}/\n科幻小说::/fenlei/6/{{page}}/\n言情小说::/fenlei/7/{{page}}/\n轻小说::/fenlei/8/{{page}}/\n诸天无限::/fenlei/9/{{page}}/\n游戏小说::/fenlei/10/{{page}}/\n奇幻小说::/fenlei/11/{{page}}/\n悬疑小说::/fenlei/12/{{page}}/\n体育小说::/fenlei/13/{{page}}/\n官场小说::/fenlei/14/{{page}}/\n武侠小说::/fenlei/15/{{page}}/\n现实小说::/fenlei/16/{{page}}/",
+    "header": "{\"User-Agent\":\"Mozilla/5.0\",\"Referer\":\"https://www.sudugu.cc/\"}",
+    "lastUpdateTime": 1790946369616,
+    "loginUrl": "",
+    "respondTime": 121069,
+    "ruleBookInfo": {
+      "author": "class.itemtxt.0@tag.p.1@tag.a.0@text##作者：",
+      "coverUrl": "tag.img.0@src",
+      "intro": "class.des.0@html",
+      "kind": "class.itemtxt.0@tag.p.0@tag.span@text",
+      "lastChapter": "class.itemtxt.0@tag.li.0@tag.a.0@text",
+      "name": "tag.img.0@alt",
+      "tocUrl": "",
+      "wordCount": "class.itemtxt.0@tag.script.0@text@js:\nlet num = result.textContent.match(/\\d+/)[0]\nlet wan=Math.round(parseInt(num)/10000);\nwan+'万字'"
+    },
+    "ruleContent": {
+      "content": "class.con.0@html",
+      "nextContentUrl": "//div[@class='prenext']/span/a[text()='下一页']/@href",
+      "replaceRegex": "##[\\(（]本章完[\\)）]$"
+    },
+    "ruleExplore": {
+      "author": "class.itemtxt.0@tag.p.1@tag.a.0@text##作者：",
+      "bookList": "class.item",
+      "bookUrl": "tag.a.0@href",
+      "coverUrl": "tag.img.0@src",
+      "kind": "class.itemtxt.0@tag.p.0@tag.span@text",
+      "lastChapter": "class.itemtxt.0@tag.li.0@tag.a.0@text",
+      "name": "tag.img.0@alt"
+    },
+    "ruleSearch": {
+      "author": "@css:li:eq(0)@text##^作者：",
+      "bookList": "@js:java.getElements('@css:.content.book .item').filter(item=>item.select('h3 a').length>0)",
+      "bookUrl": "@css:h3 a@href",
+      "coverUrl": "tag.a.0@href@js:\nlet id = result.match(/\\d+/)[0], id_='0';\nif (id.length>3) {\nid_ = id.slice(0,-3)\n}\nbook.origin+'/files/article/image/'+id_+'/'+id+'/'+id+'s.jpg'",
+      "intro": "@css:p@text##^简介：\\s*",
+      "kind": "",
+      "lastChapter": "@css:li:eq(2) a@text",
+      "name": "@css:h3 a@text"
+    },
+    "ruleToc": {
+      "chapterList": "id.list.0@tag.a",
+      "chapterName": "text",
+      "chapterUrl": "href",
+      "nextTocUrl": "@css:#pages .gr:not([href='#'])@href"
+    },
+    "searchUrl": "@js:const keyword=key; const options={method:\"POST\",body:`searchkey=${java.encodeURI(keyword)}&action=login&searchtype=all&submit=`}; baseUrl+\"/modules/article/search.php,\"+JSON.stringify(options);",
+    "weight": 25,
+    "bookSourceGroup": "JDRead实测"
+  }
+]

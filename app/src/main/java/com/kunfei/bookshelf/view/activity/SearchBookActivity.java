@@ -171,6 +171,7 @@ public class SearchBookActivity extends MBaseActivity<SearchBookContract.Present
                         MApplication.SEARCH_GROUP = item.getTitle().toString();
                     }
                     mPresenter.initSearchEngineS(MApplication.SEARCH_GROUP);
+                    MApplication.getConfigPreferences().edit().putString("search_group", MApplication.SEARCH_GROUP).apply();
                 }
         }
         return super.onOptionsItemSelected(item);

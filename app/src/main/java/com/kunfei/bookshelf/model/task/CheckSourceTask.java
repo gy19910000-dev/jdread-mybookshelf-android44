@@ -13,7 +13,7 @@ import com.kunfei.bookshelf.service.CheckSourceService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.script.SimpleBindings;
+
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
@@ -141,7 +141,7 @@ public class CheckSourceTask implements JsExtensions {
      * 执行JS
      */
     private Object evalJS(String jsStr, String baseUrl) throws Exception {
-        SimpleBindings bindings = new SimpleBindings();
+        java.util.Map<String,Object> bindings = new java.util.HashMap<String,Object>();
         bindings.put("java", new AnalyzeRule(null));
         bindings.put("baseUrl", baseUrl);
         return SCRIPT_ENGINE.eval(jsStr, bindings);

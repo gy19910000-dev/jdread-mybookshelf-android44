@@ -41,6 +41,15 @@ public class BaseModelImpl {
     }
 
     public Observable<Response<String>> getResponseO(AnalyzeUrl analyzeUrl) {
+        if (analyzeUrl.getModernRequest() != null) return Observable.fromCallable(() -> {
+            okhttp3.Response network = com.kunfei.bookshelf.help.JsHttp.execute(analyzeUrl, true);
+            try {
+                String text = com.kunfei.bookshelf.help.JsHttp.decode(network, analyzeUrl.getCharCode());
+                okhttp3.Response raw = network.newBuilder().body(null).build();
+                return network.isSuccessful() ? Response.success(text, raw)
+                        : Response.error(okhttp3.ResponseBody.create(null, text), raw);
+            } finally { network.close(); }
+        });
         switch (analyzeUrl.getUrlMode()) {
             case POST:
                 return getRetrofitString(analyzeUrl.getHost(), analyzeUrl.getCharCode())

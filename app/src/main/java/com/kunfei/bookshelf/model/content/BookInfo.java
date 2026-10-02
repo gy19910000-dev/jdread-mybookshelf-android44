@@ -45,7 +45,7 @@ class BookInfo {
             bookInfoBean.setOrigin(sourceName);
             bookInfoBean.setBookSourceType(bookSourceBean.getBookSourceType()); // 是否为有声读物
 
-            AnalyzeRule analyzer = new AnalyzeRule(bookShelfBean);
+            AnalyzeRule analyzer = new AnalyzeRule(bookShelfBean).setSource(bookSourceBean);
             analyzer.setContent(s, baseUrl);
 
             // 获取详情页预处理规则

@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import com.kunfei.bookshelf.DbHelper;
 import com.kunfei.bookshelf.MApplication;
 import com.kunfei.bookshelf.base.BaseModelImpl;
+import com.kunfei.bookshelf.bean.BookSource3Bean;
 import com.kunfei.bookshelf.bean.BookSourceBean;
 import com.kunfei.bookshelf.dao.BookSourceBeanDao;
 import com.kunfei.bookshelf.help.SourceHelp;
@@ -199,7 +200,7 @@ public class BookSourceManager {
             List<BookSourceBean> bookSourceBeans = new ArrayList<>();
             if (StringUtils.isJsonArray(json)) {
                 try {
-                    bookSourceBeans = GsonUtils.parseJArray(json, BookSourceBean.class);
+                    bookSourceBeans = parseBookSourceArray(json);
                     for (BookSourceBean bookSourceBean : bookSourceBeans) {
                         if (bookSourceBean.containsGroup("删除")) {
                             DbHelper.getDaoSession().getBookSourceBeanDao().queryBuilder()
@@ -225,7 +226,7 @@ public class BookSourceManager {
             }
             if (StringUtils.isJsonObject(json)) {
                 try {
-                    BookSourceBean bookSourceBean = GsonUtils.parseJObject(json, BookSourceBean.class);
+                    BookSourceBean bookSourceBean = parseBookSourceArray("[" + json + "]").get(0);
                     addBookSource(bookSourceBean);
                     bookSourceBeans.add(bookSourceBean);
                     e.onNext(bookSourceBeans);
@@ -238,4 +239,26 @@ public class BookSourceManager {
         });
     }
 
+    /**
+     * 解析书源 JSON 数组，兼容「阅读 3.0 新格式」与「阅读 2.0 老格式」。
+     *
+     * 3.0 新格式：searchUrl + 嵌套的 ruleSearch / ruleBookInfo / ruleToc / ruleContent
+     * 2.0 老格式：ruleSearchUrl / ruleSearchList / ruleChapterList / ruleBookContent 等扁平字段
+     *
+     * 新格式先解析为 BookSource3Bean，再经 toBookSourceBean() 转成本工程内部使用的
+     * BookSourceBean（老格式），因此下游的搜索/目录/正文解析逻辑无需改动。
+     */
+    public static List<BookSourceBean> parseBookSourceArray(String json) {
+        List<BookSourceBean> out = new ArrayList<>();
+        com.google.gson.JsonArray array = new com.google.gson.JsonParser().parse(json).getAsJsonArray();
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        for (com.google.gson.JsonElement element : array) {
+            com.google.gson.JsonObject object = element.getAsJsonObject();
+            BookSourceBean bean = object.has("searchUrl") || object.has("ruleSearch")
+                    ? gson.fromJson(object, BookSource3Bean.class).toBookSourceBean()
+                    : gson.fromJson(object, BookSourceBean.class);
+            if (bean != null && !StringUtils.isTrimEmpty(bean.getBookSourceUrl())) out.add(bean);
+        }
+        return out;
+    }
 }

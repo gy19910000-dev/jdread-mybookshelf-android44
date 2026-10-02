@@ -76,6 +76,7 @@ public class MApplication extends Application {
             createChannelId();
         }
         configPreferences = getSharedPreferences("CONFIG", 0);
+        SEARCH_GROUP = configPreferences.getString("search_group", null);
         downloadPath = configPreferences.getString(getString(R.string.pk_download_path), "");
         if (TextUtils.isEmpty(downloadPath) | Objects.equals(downloadPath, FileHelp.getCachePath())) {
             setDownloadPath(null);

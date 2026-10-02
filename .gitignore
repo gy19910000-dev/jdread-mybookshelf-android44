@@ -8,7 +8,19 @@
 /app/release/
 google-services.json
 
-src/androidTest/
 /back
 /tool/书源整理工具/bin/*.exe
 /tool/书源整理工具/*.otares
+
+# Local build outputs, credentials and signing material
+**/build/
+**/.gradle/
+*.apk
+*.aab
+*.jks
+*.keystore
+*.p12
+*.pem
+*.log
+compat-*
+/local.properties

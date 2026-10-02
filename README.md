@@ -1,49 +1,57 @@
-# 本软件为开源软件,不要在任何地方购买!
-# 关注公众号请搜索:开源阅读,有福利噢
-# 开发
-- 本项目Fork于 https://github.com/ZhangQinhao/MONKOVEL
+# JDRead 阅读兼容版 · Android 4.4
 
-**代码贡献人员**
-- 大古队员 https://github.com/DaguDuiyuan
-- atbest https://github.com/atbest
-- Antecer https://github.com/Antecer
-- mabDc https://github.com/mabDc
-- 繁体-翻译者:Cello琴弦之間
+为 JDRead-1 等 Android 4.4 老设备改造的开源阅读器，让老版「阅读」能够导入含新版 JavaScript 规则的书源，并完成搜书、打开目录和正文阅读。
 
-**其它贡献人员**
-- 图标绘制 群管理员-新奥尔良烤鲟魚堡
+**本项目基于 [gedoor/MyBookshelf（开源「阅读」）](https://github.com/gedoor/MyBookshelf) 的 `2.21.021620` 版本修改，并非从零开发，也不是上游官方发行版。** 原版主要作者为章钦豪及原项目贡献者；原作者的代码、版权声明和贡献者信息均保留。本仓库公开此次兼容改造的完整源码。
 
-# 软件截图
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook1.jpg)
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook2.jpg)
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook3.jpg)
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook4.jpg)
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook5.jpg)
-![image](https://github.com/gedoor/gedoor.github.io/blob/master/MyBookshelf/image/mybook6.jpg)
+上游版本提交：`b392b72a416774733758f61b747dbb2385bb6462`。原项目更早的来源、贡献者及原始说明见 [README.upstream.md](README.upstream.md)。本项目沿用 [GNU GPLv3 许可证](LICENSE)，免费提供。
 
-# 免责声明（Disclaimer）
-阅读是一款提供网络文学搜索的工具，为广大网络文学爱好者提供一种方便、快捷舒适的试读体验。
+## 下载和使用
 
-当您搜索一本书的时，阅读会将该书的书名以关键词的形式提交到各个第三方网络文学网站。
-各第三方网站返回的内容与阅读无关，阅读对其概不负责，亦不承担任何法律责任。
-任何通过使用阅读而链接到的第三方网页均系他人制作或提供，您可能从第三方网页上获得其他服务，
-阅读对其合法性概不负责，亦不承担任何法律责任。
-第三方搜索引擎结果根据您提交的书名自动搜索获得并提供试读，
-不代表阅读赞成或被搜索链接到的第三方网页上的内容或立场。
-您应该对使用搜索引擎的结果自行承担风险。
+从本仓库右侧 **Releases** 下载 `JDRead-Reader-JS-v0.1.0.apk`。发布版保留原应用包名 `com.gedoor.monkeybook`，当前 APK 使用调试证书签名。签名不同的官方版或其他修改版不能直接覆盖安装；请先备份书架和阅读数据。
 
-阅读不做任何形式的保证：不保证第三方搜索引擎的搜索结果满足您的要求，
-不保证搜索服务不中断，不保证搜索结果的安全性、正确性、及时性、合法性。
-因网络状况、通讯线路、第三方网站等任何原因而导致您不能正常使用阅读，
-阅读不承担任何法律责任。阅读尊重并保护所有使用阅读用户的个人隐私权。
+本软件自身不提供设备 root、解锁或刷机功能。安装仍取决于设备是否允许第三方 APK。
 
-阅读致力于最大程度地减少网络文学阅读者在自行搜寻过程中的无意义的时间浪费，
-通过专业搜索展示不同网站中网络文学的最新章节。
-阅读在为广大小说爱好者提供方便、快捷舒适的试读体验的同时，
-也使优秀网络文学得以迅速、更广泛的传播，从而达到了在一定程度促进网络文学充分繁荣发展之目的。
+发布页另附 `jdread-compat-sources.json`，源码中也提供 [同一示例书源](examples/jdread-compat-sources.json)。下载后在「阅读」的书源管理中选择本地导入，在搜索页面的菜单中选择 **JDRead实测** 分组，再输入书名或关键词。搜索分组选择会被保存。
 
-阅读鼓励广大小说爱好者通过阅读发现优秀网络小说及其提供商，
-并建议阅读正版图书。
-任何单位或个人认为通过阅读搜索链接到的第三方网页内容可能涉嫌侵犯其信息网络传播权，
-应该及时向阅读提出书面权力通知，并提供身份证明、权属证明及详细侵权情况证明。
-阅读在收到上述法律文件后，将会依法尽快断开相关链接内容。
+书源文件是含 JS 规则的 JSON，文件中提供的是网站解析规则，不包含小说正文或其他书籍内容。示例来源和改动见 [第三方说明](THIRD_PARTY_NOTICES.md)。请通过你有权访问的来源阅读。
+
+## 改造的作用
+
+- 保留新版书源 JS 的空格、字符串及请求选项，避免导入转换时破坏脚本。
+- 直接使用 Rhino 1.7.15，并明确启用 ES6 解释执行；修复旧 Android 上 JSR223 接口不一致的问题。
+- 为每次脚本执行建立独立作用域，支持已验证的 `let`、`const`、箭头函数、模板字符串和常用数组操作。
+- 兼容新版关键字及分页表达式、GET/POST 请求选项、请求头、GBK 表单及常用编码接口。
+- 补充 `java`、`source`、`book`、`cookie` 等常用桥接接口，修复 JSONPath 插值及特殊字符替换。
+- 将网页结果列表转换为 JS 数组，解决 Android 4.4 反射 Java 8 `Consumer` 接口时报错的问题。
+- 使用支持旧 Android 的 OkHttp/Retrofit，并用 Conscrypt 改善 TLS 连接兼容。
+- 更新一份已变化网站的示例书源地址和搜索列表规则，保留原有阅读功能。
+
+## 实测情况
+
+测试日期：2026-10-02。实测设备为 JDRead-1，Android 4.4.2 / API 19；其他型号尚未验证。
+
+9 项规则运行及解析回归测试全部通过。作者当日公开的 XIU2 22 源均可导入；导入成功不代表每个网站仍可用。
+
+新增「速读谷（JDRead兼容）」示例的真实搜索 URL 使用 `const` 和模板字符串，结果列表使用箭头函数和 `filter`：
+
+| 搜索关键词 | 搜索结果 | 目录及正文 |
+|---|---:|---|
+| 斗破苍穹 | 1 本 | 1661 章目录、第一章正文读取成功 |
+| 凡人 | 31 本 | 首本 1281 章目录、第一章正文读取成功 |
+
+真实搜索界面也确认显示 31 条结果。结果数量取决于网站当前数据。验证方法见 [构建与验证说明](docs/BUILD.md)。
+
+## 当前限制
+
+本项目实现了一部分新版书源语法和接口，**不是阅读 3.x 的完整移植，也不保证兼容所有最新 JS 语法或所有书源**。外部 JS 库 URL、部分专用协议和其他尚未实现的 3.x API 仍可能失败。
+
+起点目前仍需要手动网页验证，尚未验证通过；本次使用的番茄旧接口返回错误，尚未修好。失效地址、网站改版、登录、验证码及访问限制需要分别处理；本项目不绕过付费、登录或验证码限制。
+
+当前 TLS 实现沿用宽松的证书和主机名校验策略，不能提供严格的服务器身份验证；请勿把它当作需要账户安全保障的浏览器。网页验证入口也尚未完成全面验证。
+
+## 开源、构建与反馈
+
+完整源码见本仓库，构建所需的版本与步骤见 [docs/BUILD.md](docs/BUILD.md)。修改清单见 [CHANGELOG.md](CHANGELOG.md)。重新分发本项目及修改版时，请保留上游版权声明、GPLv3 许可证和对应源码。
+
+如需反馈，请在 Issues 中说明设备型号、Android 版本、书源来源和可复现的报错。不要上传账号密码、Cookie、书架数据库或其他私人信息。

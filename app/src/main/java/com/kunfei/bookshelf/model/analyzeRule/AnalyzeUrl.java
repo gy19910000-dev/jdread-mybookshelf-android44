@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.script.SimpleBindings;
+
 
 import static com.kunfei.bookshelf.constant.AppConstant.EXP_PATTERN;
 import static com.kunfei.bookshelf.constant.AppConstant.JS_PATTERN;
@@ -36,6 +36,11 @@ import static com.kunfei.bookshelf.utils.NetworkUtils.headerPattern;
 @Keep
 public class AnalyzeUrl implements JsExtensions {
     private static final Pattern pagePattern = Pattern.compile("\\{(.*?)\\}");
+    private com.kunfei.bookshelf.help.Source3Store.Source source;
+    private com.kunfei.bookshelf.help.RuleUrlParser.Request modernRequest;
+    private String searchKey;
+    private Integer searchPage;
+    private final Map<String,String> variables = new HashMap<>();
     private String baseUrl;
     private String url;
     private String host;
@@ -58,6 +63,18 @@ public class AnalyzeUrl implements JsExtensions {
     public AnalyzeUrl(String ruleUrl, final String key, final Integer page, Map<String, String> headerMapF, String baseUrl) throws Exception {
         if (!TextUtils.isEmpty(baseUrl)) {
             this.baseUrl = headerPattern.matcher(baseUrl).replaceAll("");
+        }
+        source = com.kunfei.bookshelf.help.Source3Store.find(baseUrl);
+        searchKey = key;
+        searchPage = page;
+        if (source != null || ruleUrl.contains("{{key") || ruleUrl.contains("{{page") || ruleUrl.matches("(?s).*?,\\s*\\{.*")) {
+            String modernRule = analyzeHeader(ruleUrl, headerMapF);
+            modernRequest = com.kunfei.bookshelf.help.RuleUrlParser.parse(modernRule, this::evalJS);
+            headerMap.putAll(modernRequest.headers);
+            charCode = modernRequest.charset;
+            generateUrlPath(modernRequest.url);
+            if (modernRequest.method.equals("POST")) urlMode = UrlMode.POST;
+            return;
         }
         //替换关键字
         if (!StringUtils.isTrimEmpty(key)) {
@@ -175,7 +192,7 @@ public class AnalyzeUrl implements JsExtensions {
         if (ruleUrl.contains("{{") && ruleUrl.contains("}}")) {
             Object jsEval;
             StringBuffer sb = new StringBuffer(ruleUrl.length());
-            SimpleBindings simpleBindings = new SimpleBindings() {{
+            java.util.Map<String,Object> simpleBindings = new java.util.HashMap<String,Object>() {{
                 this.put("baseUrl", baseUrl);
                 this.put("searchPage", searchPage);
                 this.put("searchKey", searchKey);
@@ -260,10 +277,19 @@ public class AnalyzeUrl implements JsExtensions {
      * 执行JS
      */
     private Object evalJS(String jsStr, Object result) throws Exception {
-        SimpleBindings bindings = new SimpleBindings();
-        bindings.put("result", result);
+        java.util.Map<String,Object> bindings = com.kunfei.bookshelf.help.JsBindings.create(this, result, baseUrl, null, source);
+        bindings.put("key", searchKey);
+        bindings.put("page", searchPage);
+        bindings.put("searchKey", searchKey);
+        bindings.put("searchPage", searchPage);
         return SCRIPT_ENGINE.eval(jsStr, bindings);
     }
+
+    public com.kunfei.bookshelf.help.RuleUrlParser.Request getModernRequest() { return modernRequest; }
+    public String jsBaseUrl() { return baseUrl; }
+    public com.kunfei.bookshelf.help.Source3Store.Source jsSource() { return source; }
+    public String put(String key, String value) { if(source!=null)return source.put(key,value);variables.put(key,value);return value; }
+    public String get(String key) { return source==null?variables.get(key):source.get(key); }
 
     public String getCharCode() {
         return charCode;
@@ -294,6 +320,7 @@ public class AnalyzeUrl implements JsExtensions {
     }
 
     public byte[] getPostData() {
+        if (modernRequest != null) return (modernRequest.body == null ? "" : modernRequest.body).getBytes(java.nio.charset.Charset.forName(charCode == null ? "UTF-8" : charCode));
         StringBuilder builder = new StringBuilder();
         Set<String> keys = queryMap.keySet();
         for (String key : keys) {

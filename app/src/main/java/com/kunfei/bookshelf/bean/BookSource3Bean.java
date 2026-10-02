@@ -24,15 +24,18 @@ public class BookSource3Bean {
     private Long lastUpdateTime = 0L;               // 最后更新时间，用于排序
     private int weight = 0;                            // 智能排序的权重
     private String exploreUrl;                // 发现url
-    private ExploreRule ruleExplore;          // 发现规则
+    // 预先实例化：toBookSourceBean() 会无条件解引用这些对象，
+    // 若某书源 json 里缺少某个规则块，会抛 NPE 导致该源导入失败
+    private ExploreRule ruleExplore = new ExploreRule();          // 发现规则
     private String searchUrl;                 // 搜索url
-    private SearchRule ruleSearch;             // 搜索规则
-    private BookInfoRule ruleBookInfo;        // 书籍信息页规则
-    private TocRule ruleToc;                 // 目录页规则
-    private ContentRule ruleContent;            // 正文页规则
+    private SearchRule ruleSearch = new SearchRule();             // 搜索规则
+    private BookInfoRule ruleBookInfo = new BookInfoRule();        // 书籍信息页规则
+    private TocRule ruleToc = new TocRule();                 // 目录页规则
+    private ContentRule ruleContent = new ContentRule();            // 正文页规则
 
     @Transient
     private String userAgent;
+    private String jsLib;
     @Transient
     private String RuleSearchUrl;
 
@@ -133,64 +136,17 @@ public class BookSource3Bean {
     }
 
     private String searchUrl2RuleSearchUrl(String searchUrl) {
-        String RuleSearchUrl = searchUrl;
-        if (searchUrl != null) {
-            String q = "";
-            if (searchUrl.replaceAll("\\s", "").matches("^[^,]+,\\{.+\\}")) {
-                // 正常网址不包含逗号
-                String[] strings = searchUrl.split(",", 2);
-                try {
-                    Gson gson = new Gson();
-                    httpRequest request = gson.fromJson(strings[1], httpRequest.class);
-                    if (gson.toJson(request).replaceAll("\\s", "").length() > 0) {
-                        // 阅读2.0没有单独的header，只有useragent
-                        if (request.headers != null) {
-                            if (this.header == null)
-                                this.header = request.headers;
-                            else if (request.headers.trim().length() < 1)
-                                this.header = request.headers;
-                        }
-
-                        if (request.charset != null) {
-                            if (request.charset.trim().length() > 0)
-                                q = q + "|char=" + request.charset;
-                        }
-
-                        if (request.body != null) {
-                            q = request.body
-                                    .replace("{{key}}", "searchKey")
-                                    .replaceFirst("\\{\\{([^{}]*)page([^{}]*)\\}\\}", "$1searchPage$2")
-                                    + q;
-
-                            // post请求的关键词一定在第二部分
-                            if (request.method != null) {
-                                if (request.method.toLowerCase().contains("post"))
-                                    q = "@" + q;
-                                else
-                                    q = "?" + q;
-                            }
-                            return strings[0] + q;
-                        }
-
-                        RuleSearchUrl = strings[0] + q;
-                    } else
-                        RuleSearchUrl = searchUrl;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    RuleSearchUrl = searchUrl;
-                }
-            }
-
-            return RuleSearchUrl.replaceAll("\\s", "")
-                    .replace("{{key}}", "searchKey")
-                    .replaceFirst("\\{\\{([^{}]*)page([^{}]*)\\}\\}", "$1searchPage$2")
-                    ;
-        }
-        return null;
+        // 3.x URLs must retain their JS, whitespace and request-options object.
+        return searchUrl;
     }
 
     public BookSourceBean toBookSourceBean() {
+        if (ruleExplore == null) ruleExplore = new ExploreRule();
+        if (ruleSearch == null) ruleSearch = new SearchRule();
+        if (ruleBookInfo == null) ruleBookInfo = new BookInfoRule();
+        if (ruleToc == null) ruleToc = new TocRule();
+        if (ruleContent == null) ruleContent = new ContentRule();
+        com.kunfei.bookshelf.help.Source3Store.save(bookSourceUrl, new Gson().toJson(this));
         // 带注释的行，表示2.0/3.0书源json的数据命名不同。注释后方为2.0名称
         String bookSourceType = "";
         if (this.bookSourceType != 0)
@@ -205,16 +161,11 @@ public class BookSource3Bean {
 
         String ruleFindUrl=null;
         if(exploreUrl!=null){
-            ruleFindUrl=exploreUrl.replaceAll("\\{\\{page\\}\\}","searchPage");
+            ruleFindUrl=exploreUrl;
         }
 
-        // 暂时只给发现和搜索添加了header
-        String header="";
-        if(this.header!=null){
-            if(this.header.trim().length()>0)
-            header="@Header:"+this.header.replaceAll("\\n"," ");
-        }
-
+        String header = "";
+        userAgent = this.header;
 
         return new BookSourceBean(
                 bookSourceUrl,
@@ -225,7 +176,7 @@ public class BookSource3Bean {
                 lastUpdateTime,
                 0, //u  serialNumber,
                 weight,
-                true, //u enable,
+                enabled == null || enabled, // preserve disabled sources
                 ruleFindUrl+header,//发现规则 ruleFindUrl,
                 ruleExplore.bookList,  //  列表 ruleFindList,
                 ruleExplore.name,//  ruleFindName,

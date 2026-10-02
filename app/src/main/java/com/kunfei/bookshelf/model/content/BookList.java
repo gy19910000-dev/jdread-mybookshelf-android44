@@ -62,7 +62,7 @@ class BookList {
             }
             String body = response.body();
             List<SearchBookBean> books = new ArrayList<>();
-            AnalyzeRule analyzer = new AnalyzeRule(null);
+            AnalyzeRule analyzer = new AnalyzeRule(null).setSource(bookSourceBean);
             analyzer.setContent(body, baseUrl);
             //如果符合详情页url规则
             if (!isEmpty(bookSourceBean.getRuleBookUrlPattern())

@@ -9,8 +9,8 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+
+
 
 import okhttp3.MediaType;
 
@@ -37,7 +37,7 @@ public class AppConstant {
     public static final Pattern JS_PATTERN = Pattern.compile("(<js>[\\w\\W]*?</js>|@js:[\\w\\W]*$)", Pattern.CASE_INSENSITIVE);
     public static final Pattern EXP_PATTERN = Pattern.compile("\\{\\{([\\w\\W]*?)\\}\\}");
 
-    public static final ScriptEngine SCRIPT_ENGINE = new ScriptEngineManager().getEngineByName("rhino");
+    public static final com.kunfei.bookshelf.help.Es6ScriptEngine SCRIPT_ENGINE = new com.kunfei.bookshelf.help.Es6ScriptEngine();
 
     public static final MediaType jsonMediaType = MediaType.parse("Content-Type, application/json");
 }

@@ -5,15 +5,15 @@ buildscript {
     ext.kotlin_version = '1.4.30'
     repositories {
         google()
-        jcenter()
         mavenCentral()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.2'
         classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
-        classpath 'com.google.gms:google-services:4.3.4'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.4.1'
         classpath 'net.ricecode:string-similarity:1.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.timfreiheit.resourceplaceholders:placeholders:0.3'
@@ -23,11 +23,19 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url "https://jitpack.io" }
-        maven { url 'https://maven.google.com/' }
         maven { url 'https://github.com/psiegman/mvn-repo/raw/master/releases' }
+    }
+    // 关键：强制把 OkHttp/Okio 钉在支持 API 19 的版本上，防止任何依赖把它顶回 3.13+
+    configurations.all {
+        resolutionStrategy {
+            force 'com.squareup.okhttp3:okhttp:3.12.13'
+            force 'com.squareup.okio:okio:1.15.0'
+        }
     }
 }
 

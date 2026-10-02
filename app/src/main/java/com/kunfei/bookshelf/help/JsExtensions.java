@@ -17,17 +17,28 @@ import retrofit2.Response;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public interface JsExtensions {
 
+    default String jsBaseUrl() { return null; }
+    default Source3Store.Source jsSource() { return Source3Store.find(jsBaseUrl()); }
+    default Map<String,String> jsHeaders() {
+        java.util.HashMap<String,String> headers=new java.util.HashMap<>();
+        headers.put("User-Agent",com.kunfei.bookshelf.constant.AppConstant.DEFAULT_USER_AGENT);
+        Source3Store.Source source=jsSource();
+        if(source!=null) {
+            try { if(source.header!=null && source.header.trim().startsWith("{")) headers.putAll(new com.google.gson.Gson().fromJson(source.header,com.kunfei.bookshelf.constant.AppConstant.MAP_STRING)); }catch(Exception ignored){}
+            String cookie=new SourceCookie().getCookie(source.getKey());if(!cookie.isEmpty())headers.put("Cookie",cookie);
+        }
+        return headers;
+    }
+
     /**
      * js实现跨域访问,不能删
      */
     default String ajax(String urlStr) {
         try {
-            AnalyzeUrl analyzeUrl = new AnalyzeUrl(urlStr);
-            Response<String> response = BaseModelImpl.getInstance().getResponseO(analyzeUrl)
-                    .blockingFirst();
-            return response.body();
+            AnalyzeUrl analyzeUrl = new AnalyzeUrl(urlStr, jsHeaders(), jsBaseUrl());
+            return JsHttp.send(analyzeUrl,true).body();
         } catch (Exception e) {
-            return e.getLocalizedMessage();
+            throw new IllegalStateException("书源请求失败: " + e.getLocalizedMessage(),e);
         }
     }
 
@@ -56,29 +67,34 @@ public interface JsExtensions {
     /**
      * js实现重定向拦截,不能删
      */
-    default Connection.Response get(String urlStr, Map<String, String> headers) throws IOException {
-        return Jsoup.connect(urlStr)
-                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
-                .ignoreContentType(true)
-                .followRedirects(false)
-                .headers(headers)
-                .method(Connection.Method.GET)
-                .execute();
+    default JsHttp.Result get(String urlStr, Map<String, String> headers) throws Exception {
+        Map<String,String> all=jsHeaders();if(headers!=null)all.putAll(headers);
+        return JsHttp.send(new AnalyzeUrl(urlStr,all,jsBaseUrl()),false);
     }
 
     /**
      * js实现重定向拦截,不能删
      */
-    default Connection.Response post(String urlStr, String body, Map<String, String> headers) throws IOException {
-        return Jsoup.connect(urlStr)
-                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
-                .ignoreContentType(true)
-                .followRedirects(false)
-                .requestBody(body)
-                .headers(headers)
-                .method(Connection.Method.POST)
-                .execute();
+    default JsHttp.Result post(String urlStr, String body, Map<String, String> headers) throws Exception {
+        Map<String,String> all=jsHeaders();if(headers!=null)all.putAll(headers);
+        com.google.gson.JsonObject options=new com.google.gson.JsonObject();options.addProperty("method","POST");options.addProperty("body",body);
+        return JsHttp.send(new AnalyzeUrl(urlStr+","+options,all,jsBaseUrl()),false);
     }
+
+    default String encodeURI(String value) throws Exception { return encodeURI(value,"UTF-8"); }
+    default String encodeURI(String value,String charset) throws Exception { return java.net.URLEncoder.encode(value,charset).replace("+","%20"); }
+    default String base64Decode(String value) { return new String(android.util.Base64.decode(value,android.util.Base64.DEFAULT),java.nio.charset.Charset.forName("UTF-8")); }
+    default String base64Encode(String value) { return android.util.Base64.encodeToString(value.getBytes(java.nio.charset.Charset.forName("UTF-8")),android.util.Base64.NO_WRAP); }
+    default String hexDecodeToString(String value) { java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream();for(int i=0;i+1<value.length();i+=2)out.write(Integer.parseInt(value.substring(i,i+2),16));return new String(out.toByteArray(),java.nio.charset.Charset.forName("UTF-8")); }
+    default String timeFormat(long millis) { return timeFormat(millis,"yyyy-MM-dd HH:mm:ss"); }
+    default String timeFormat(long millis,String format) { return new java.text.SimpleDateFormat(format,java.util.Locale.CHINA).format(new java.util.Date(millis)); }
+    default String androidId() { return android.provider.Settings.Secure.getString(com.kunfei.bookshelf.MApplication.getInstance().getContentResolver(),android.provider.Settings.Secure.ANDROID_ID); }
+    default String getCookie(String url) { return new SourceCookie().getCookie(url); }
+    default String getCookie(String url,String name) { return new SourceCookie().getCookie(url,name); }
+    default void log(Object text) { android.util.Log.d("SourceScript",String.valueOf(text)); }
+    default void toast(Object text) { new android.os.Handler(android.os.Looper.getMainLooper()).post(()->android.widget.Toast.makeText(com.kunfei.bookshelf.MApplication.getInstance(),String.valueOf(text),android.widget.Toast.LENGTH_SHORT).show()); }
+    default void longToast(Object text) { new android.os.Handler(android.os.Looper.getMainLooper()).post(()->android.widget.Toast.makeText(com.kunfei.bookshelf.MApplication.getInstance(),String.valueOf(text),android.widget.Toast.LENGTH_LONG).show()); }
+    default String startBrowserAwait(String url,String title) throws Exception { return com.kunfei.bookshelf.view.activity.SourceVerificationActivity.await(url,title,jsSource()); }
 
 
 }

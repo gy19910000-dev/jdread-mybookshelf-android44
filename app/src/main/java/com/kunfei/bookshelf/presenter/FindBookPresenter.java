@@ -23,7 +23,7 @@ import com.kunfei.bookshelf.widget.recycler.expandable.bean.RecyclerViewData;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.script.SimpleBindings;
+
 
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
@@ -117,7 +117,7 @@ public class FindBookPresenter extends BasePresenterImpl<FindBookContract.View> 
      * 执行JS
      */
     private Object evalJS(String jsStr, String baseUrl) throws Exception {
-        SimpleBindings bindings = new SimpleBindings();
+        java.util.Map<String,Object> bindings = new java.util.HashMap<String,Object>();
         bindings.put("java", getAnalyzeRule());
         bindings.put("baseUrl", baseUrl);
         return SCRIPT_ENGINE.eval(jsStr, bindings);
